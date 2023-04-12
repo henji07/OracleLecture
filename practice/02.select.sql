@@ -203,4 +203,52 @@ SELECT *
         OR SNAME LIKE '___')
         AND MAJOR = '물리';
         
-        
+--10. 사이값을 찾아주는 BETWEEN AND절
+--급여가 3500에서 5000사이에 있는 직원목록 조회
+SELECT *
+    FROM EMP
+    WHERE SAL BETWEEN 3500 AND 5000;
+    
+--급여가 3500에서 5000사이에 있고 부서번호가 01~10인 직원목록 조회 
+SELECT *
+    FROM EMP
+    WHERE SAL BETWEEN 3500 AND 5000
+      AND DNO BETWEEN '01' AND '10';
+      
+--TO_DATE를 사용해서 임용일자가 1994년 1월 1일 이후 1998년 2월 3일 이전인 교수목록 조회 
+SELECT *
+    FROM PROFESSOR
+    WHERE HIREDATE 
+        BETWEEN TO_DATE('19940101 00:00:00', 'yyyyMMdd HH24:mi:ss') 
+            AND TO_DATE('19980203 00:00:00', 'yyyyMMdd HH24:mi:ss')
+    ORDER BY HIREDATE;
+    
+--DATE 표시 형식 지정
+ALTER SESSION SET NLS_DATE_FORMAT = 'yyyy/MM/dd HH24:mi:ss';
+    
+--DNO = 10 OR 20 OR 30 직원목록 조회 
+SELECT *
+    FROM EMP
+    WHERE DNO = '10' 
+        OR DNO = '20' 
+        OR DNO = '30';
+
+--IN절로 변환
+SELECT * 
+    FROM EMP
+    WHERE DNO IN ('10', '20', '30');
+    
+--11. 여러 개의 데이터를 비교해주는 IN절 
+--화학과나 물리학과 학생이면서 1, 2, 3학년인 학생만 조회 
+SELECT *
+    FROM STUDENT
+    WHERE MAJOR IN('화학', '물리')
+      AND SYEAR IN(1, 2, 3)
+    ORDER BY SYEAR, MAJOR;
+    
+--업무가 개발, 경영이면서 보너스가 700이상인 직원 목록 조회 
+SELECT ENO AS "직원번호" --""는 별칭 붙일 때 
+     , ENAME "직원이름" --AS 생략가능
+    FROM EMP
+    WHERE JOB IN('개발', '경영')
+      AND COMM >= 700;
