@@ -7,8 +7,12 @@ SELECT *
 --2) 1994년에서 1995년까지 부임한 교수의 명단을 검색하라(between and)
 SELECT *
     FROM PROFESSOR
-    WHERE HIREDATE BETWEEN TO_DATE('1994/01/01') AND TO_DATE('1995/12/31')
+    WHERE HIREDATE BETWEEN TO_DATE('19940101', 'yyyyMMdd HH24:mi:ss') 
+                    AND TO_DATE('19951231', 'yyyyMMdd HH24:mi:ss')
     ORDER BY HIREDATE;
+    
+-- 날짜 형식 변경하려면    
+ALTER SESSION SET NLS_DATE_FORMAT = 'yyyyMMdd HH24:mi:ss';
 
 --3) 화학과와 물리학과, 생물학과 학생을 검색하라(in)
 SELECT *
@@ -42,7 +46,7 @@ SELECT *
 --8) 부임일이 1995년 이전인 정교수를 검색하라(to_date)
 SELECT *
     FROM PROFESSOR
-    WHERE HIREDATE < TO_DATE('1995/01/01');
+    WHERE HIREDATE < TO_DATE('19950101', 'yyyyMMdd HH24:mi:ss');
 
 --1) 송강 교수가 강의하는 과목을 검색한다
 SELECT PR.PNO
@@ -52,7 +56,7 @@ SELECT PR.PNO
     FROM PROFESSOR PR
     JOIN COURSE CR
     ON PR.PNO = CR.PNO
-    WHERE PNAME = '송강';
+    AND PNAME = '송강';
 
 --2) 화학 관련 과목을 강의하는 교수의 명단을 검색한다
 SELECT PR.PNO
@@ -62,7 +66,7 @@ SELECT PR.PNO
     FROM PROFESSOR PR
     JOIN COURSE CR
     ON PR.PNO = CR.PNO
-    WHERE CNAME LIKE '%화학';
+    WHERE CNAME LIKE '%화학%';
 
 --3) 학점이 2학점인 과목과 이를 강의하는 교수를 검색한다
 SELECT CR.*
@@ -93,7 +97,7 @@ SELECT SC. SNO
     ON SC.SNO = ST.SNO
     WHERE MAJOR = '화학'
       AND SYEAR = 1
-    ORDER BY RESULT DESC;
+    ORDER BY SC.CNO, SC.RESULT DESC;
 
 --6) 일반화학 과목의 기말고사 점수를 검색한다
 SELECT CR.CNO
@@ -124,7 +128,7 @@ SELECT ST.SNO
       AND CR.CNAME = '일반화학';
       
 --8) 화학과 1학년 학생이 수강하는 과목을 검색한다
-SELECT ST.SNO
+SELECT DISTINCT ST.SNO
      , ST.SNAME
      , ST.SYEAR
      , ST.MAJOR
@@ -161,7 +165,8 @@ SELECT A.SNO
      , B.SNAME
     FROM STUDENT A
     JOIN STUDENT B
-    ON A.SNAME = B.SNAME;
+    ON A.SNAME = B.SNAME
+    AND A.SNO != B.SNO;
     
 --2) 전체 교수 명단과 교수가 담당하는 과목의 이름을 학과 순으로 검색한다
 SELECT PR.PNO
@@ -217,7 +222,7 @@ SELECT CR.CNO
     WHERE CNAME = '유기화학';
 
 --4) 화학과 학생이 수강하는 과목을 담당하는 교수의 명단을 검색하라
-SELECT ST.SNO
+SELECT DISTINCT ST.SNO
      , ST.SNAME
      , ST.MAJOR
      , CR.CNO
