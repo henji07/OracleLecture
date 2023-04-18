@@ -31,6 +31,14 @@ SELECT CNO
     FROM SCORE
     GROUP BY CNO
     ORDER BY AVG(RESULT) DESC;
+    
+SELECT ST.MAJOR
+     , AVG(RESULT)
+    FROM SCORE SC
+    JOIN STUDENT ST
+    ON SC.SNO = ST.SNO
+    GROUP BY ST.MAJOR
+    ORDER BY AVG(RESULT) DESC;
 
 --6) 30번 부서의 업무별 연봉의 평균을 검색하세요(소수점 두자리까지 표시)
 SELECT JOB
@@ -61,7 +69,7 @@ SELECT MAJOR
     FROM STUDENT
     WHERE MAJOR NOT IN ('화학')
     GROUP BY MAJOR
-    HAVING AVG(AVR) > 2.0;
+    HAVING AVG(AVR) >= 2.0;
     
 --3) 기말고사 평균이 60점 이상인 학생의 정보를 검색하세요
 SELECT ST.SNO
@@ -76,6 +84,15 @@ SELECT ST.SNO
                 HAVING AVG(RESULT) >= 60
           ) AR
     ON ST.SNO = AR.SNO;
+    
+SELECT SC.SNO
+     , ST.SNAME
+     ,ROUND(AVG(SC.RESULT),2)
+    FROM SCORE SC
+    JOIN STUDENT ST
+    ON SC.SNO = ST.SNO
+    GROUP BY SC.SNO, ST.SNAME
+    HAVING ROUND(AVG(SC.RESULT),2) >= 60;
 
 --4) 강의 학점이 3학점 이상인 교수의 정보를 검색하세요 -  sum / 2개 이상 강의도 있기 때문에 그룹 바이
 SELECT P.PNO
@@ -92,9 +109,19 @@ SELECT P.PNO
           )SUMST
     ON P.PNO = SUMST.PNO;
     
+SELECT C.PNO
+     , P.PNAME
+     , SUM(C.ST_NUM)
+    FROM COURSE C
+    JOIN PROFESSOR P
+    ON C.PNO = P.PNO
+    GROUP BY C.PNO, P.PNAME
+    HAVING SUM(C.ST_NUM) >= 3;
+    
 --5) 기말고사 평균 성적이 핵 화학과목보다 우수한 과목의 과목명과 담당 교수명을 검색하세요 - join 많음
 SELECT C.CNO
      , C.CNAME
+     , P.PNO
      , P.PNAME
      , ART.AVGRE
     FROM COURSE C
@@ -120,6 +147,15 @@ SELECT C.CNO
                             GROUP BY CNO
                     );
       
+SELECT SC.CNO
+     , C.CNAME
+     , C.PNO
+     , ROUND(AVG(SC.RESULT),2) AS RESAVG
+    FROM SCORE SC
+    JOIN COURSE C
+    ON SC.CNO = C.CNO
+    GROUP BY SC.CNO, C.CNAME, C.PNO;
+    
 --6) 근무 중인 직원이 4명 이상인 부서를 검색하세요(부서번호, 부서명, 인원 수)
 SELECT D.DNO 부서번호
      , D.DNAME 부서명
@@ -133,6 +169,11 @@ SELECT D.DNO 부서번호
                 HAVING COUNT(*) >= 4
          ) CD
     ON D.DNO = CD.DNO;
+
+SELECT D.DNO
+     , D.DNAME
+     , COUNT(*)
+    FROM 
 
 
 --7) 업무별 평균 연봉이 3000 이상인 업무를 검색하세요
