@@ -1,0 +1,88 @@
+--1. DDL
+--1-1. 다른 테이블 참조하여 테이블 생성 
+CREATE TABLE COURSE_PROFESSOR(CNO, CNAME, PNO, PNAME, AVGRES)
+    AS SELECT CNO
+            , C.CNAME
+            , PNO
+            , P.PNAME
+            , ROUND(AVG(RESULT),2)
+        FROM COURSE C
+        NATURAL JOIN SCORE SC
+        NATURAL JOIN PROFESSOR P
+        GROUP BY CNO, C.CNAME, PNO, P.PNAME;
+
+SELECT *
+    FROM COURSE_PROFESSOR;
+    
+--STUDENT SNO, SNAME, MAJOR, SYEAR 
+--/ SCORE의 학생별 RESULT / SCGRADE의 GRADE 가지는 테이블 생성
+CREATE TABLE SCORE_GRADE(SNO, SNAME, MAJOR, SYEAR, RESULT, GRADE)
+    AS SELECT ST.SNO
+            , ST.SNAME
+            , ST.MAJOR
+            , ST.SYEAR
+            , SC.RESULT
+            , SG.GRADE
+        FROM STUDENT ST
+        JOIN SCORE SC
+        ON ST.SNO = SC.SNO
+        JOIN SCGRADE SG
+        ON SC.RESULT BETWEEN SG.LOSCORE AND SG.HISCORE;
+        
+SELECT *
+    FROM SCORE_GRADE;
+    
+--1-2. ALTER
+--컬럼을 추가하는 ADD
+--EMP_COPY1 테이블에 ADDR컬럼 추가
+ALTER TABLE EMP_COPY1 
+    ADD ADDR VARCHAR2(50);
+    
+
+    
+--컬럼명을 변경하는 RENAME
+--EMP_COPY 테이블에 SAL컬럼을 SALARY 변경 
+ALTER TABLE EMP_COPY1
+    RENAME COLUMN SAL TO SALRAY;
+
+--컬럼의 데이터 타입을 변경하는 MODIFY
+--EMP_COPY 테이블의 ENO 컬럼의 데이터 타입을 VARCHAR2(4) -> VARCHAR2(10)
+ALTER TABLE EMP_COPY1
+    MODIFY ENO VARCHAR2(10);
+    
+--컬럼을 삭제하는 DROP
+--EMP_COPY1 테이블에 ADDR컬럼 삭제
+ALTER TABLE EMP_COPY1
+    DROP COLUMN ADDR;
+    
+SELECT * 
+    FROM EMP_COPY1;    
+    
+--1-3. 테이블을 삭제하는 DROP
+CREATE TABLE SCORE_COPY
+    AS SELECT * FROM SCORE;
+    
+
+    
+--SCORE_COPY 테이블 삭제 
+DROP TABLE SCORE_COPY;
+
+--TIMESTAMP로 DELETE된 데이터 조회 
+--ENTERPRISE 버전에서는 FLASHBACK이라는 기능으로 DROP한 테이블 복구 가능 
+DELETE FROM EMP_COPY1;
+
+SELECT * FROM EMP_COPY1;
+
+--TIMESTAMP 이용해서 삭제된 데이터 복구 
+SELECT * 
+    FROM EMP_COPY1 
+    AS OF TIMESTAMP(SYSTIMESTAMP - INTERVAL '10' MINUTE);
+    
+--1-4. 테이블의 이름을 변경하는 RENAME
+RENAME EMP_COPY1 TO EMP_TEMP1;
+
+--1-5. 테이블의 데이터를 모두 삭제하는 TRUNCATE
+TRUNCATE TABLE EMP_TEMP1;
+
+SELECT *
+    FROM EMP_TEMP1;
