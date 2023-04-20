@@ -13,7 +13,7 @@ CREATE TABLE PF_TEMP
     AS SELECT * FROM PROFESSOR;
     
 UPDATE PF_TEMP
-    SET HIREDATE = HIREDATE + 100;
+    SET HIREDATE = HIREDATE - 100;
     
 SELECT *
     FROM PF_TEMP;
@@ -39,8 +39,11 @@ UPDATE EMP2
     WHERE DNO = '30';
     
 UPDATE EMP2
-    SET COMM = COMM*1.0
+    SET SAL = SAL*1.0
     WHERE DNO = '20';
+    
+SELECT *
+    FROM EMP2;
 
 --6) 화학과 2학년 학생중 기말고사 성적의 등급이 A, B인 정보를 갖는 테이블 SCORE_STGR을 생성하세요.
 --(SNO, SNAME, MAJOR, SYEAR, RESULT, GRADE)
