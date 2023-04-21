@@ -86,3 +86,300 @@ ALTER TABLE SCORE
 --PK 삭제
 ALTER TABLE DEPT 
     DROP CONSTRAINT PK_DEP_DNO;
+    
+--1-2. FOREIGN KEY(테이블 간의 관계를 맺어줌)
+--DEPT_PK1의 DNO 참조하여 EMP_PK1의 DNO를 FK로 생성
+DROP TABLE EMP_PK1;
+
+CREATE TABLE EMP_PK_FK1(
+    ENO NUMBER PRIMARY KEY,
+    ENAME VARCHAR2(20),
+    JOB VARCHAR2(10),
+    MGR NUMBER,
+    HDATE DATE,
+    SAL NUMBER(10, 3),
+    COMM NUMBER(5, 2),
+    DNO NUMBER CONSTRAINT FK_EMP_DNO 
+                REFERENCES DEPT_PK1(DNO)  
+);
+
+--FK에 데이터 추가 
+INSERT INTO EMP_PK_FK1
+VALUES (1, '홍길동', '개발', 0, SYSDATE, 3000, 300, 1);
+
+INSERT INTO EMP_PK_FK1
+VALUES (2, '장길산', '분석', 0, SYSDATE, 3200, 320, 2);
+
+--중복 허용
+INSERT INTO EMP_PK_FK1
+VALUES (3, '임꺽정', '개발', 0, SYSDATE, 3000, 300, 1);
+
+--부모테이블에 없는 값은 저장할 수 없다. 
+INSERT INTO EMP_PK_FK1
+VALUES (4, '고기천', '관리', 0, SYSDATE, 3000, 300, 3);
+
+SELECT *
+    FROM EMP_PK_FK1;
+    
+SELECT A.*
+     , B.DNAME
+     , B.LOC
+     , B.DIRECTOR
+    FROM EMP_PK_FK1 A
+    JOIN DEPT_PK1 B
+    ON A.DNO = B.DNO;
+    
+--CASCADE 옵션이 없을 때 부모테이블의 데이터의 수정이나 삭제가 불가능(자식테이블에서 부모테이블 데이터를 점유)
+--점유된 데이터를 자식 테이블에서 제거하면 부모테이블에서 수정/삭제 가능 
+--점유 안 된 데이터들은 바로 부모 테이블에서도 수정/삭제 가능 
+--부모테이블의 데이터는 자식테이블에서 사용 중이기 때문에 함부로 삭제/수정 할 수 없도록 막아놓음
+--자식테이블의 데이터를 먼저 삭제하거나 다른 데이터로 변경을 진행하고, 부모테이블의 데이터를 삭제/수정해야 한다. 
+DELETE FROM DEPT_PK1
+    WHERE DNO = 1;
+    
+UPDATE DEPT_PK1
+    SET 
+        DNO = 3
+    WHERE DNO = 1;
+    
+UPDATE EMP_PK_FK1
+    SET 
+        DNO = 3
+    WHERE DNO = 2
+      AND JOB = '개발';
+      
+UPDATE DEPT_PK1
+    SET 
+        LOC = '천안',
+        DNAME = '개발3'
+    WHERE DNO = 3;
+    
+INSERT INTO DEPT_PK1
+VALUES(1, '개발1', '서울', 1);
+
+--DEPT_PK1(부모) DNO 2, 3은 EMP_PK_FK1(자식)에서 점유, DNO 1은 EMP_PK_FK1(자식)에서 점유되어 있지 않기 때문에 
+--DNO 2, 3은 수정/삭제 불가능, DNO1은 수정/삭제 가능 
+--DNO 3의 데이터 점유를 해지(DNO1로 보내고) DNO3 데이터 부모 테이블에서 삭제 
+UPDATE EMP_PK_FK1
+    SET 
+        DNO = 1
+    WHERE DNO = 3;
+    
+DELETE FROM DEPT_PK1
+    WHERE DNO = 3;
+    
+--CASCADE 옵션 추가된 FK 생성
+CREATE TABLE EMP_PK_FK2(
+    ENO NUMBER PRIMARY KEY,
+    ENAME VARCHAR2(20),
+    JOB VARCHAR2(10),
+    MGR NUMBER,
+    HDATE DATE,
+    SAL NUMBER(10, 3),
+    COMM NUMBER(5, 2),
+    DNO NUMBER, 
+    CONSTRAINT FK_EMP_DNO2 FOREIGN KEY(DNO)
+        REFERENCES DEPT_PK1(DNO)  
+        ON DELETE CASCADE
+);
+
+--제약조건 목록 조회 
+SELECT *
+    FROM ALL_CONSTRAINTS
+    WHERE OWNER = 'C##STUDY';
+    
+--데이터 저장 
+INSERT INTO EMP_PK_FK2
+VALUES(1, '홍길동', '개발', 0, SYSDATE, 3000, 300, 1);
+
+INSERT INTO EMP_PK_FK2
+VALUES(2, '장길산', '개발', 0, SYSDATE, 3000, 300, 2);
+
+SELECT *
+    FROM EMP_PK_FK2;
+    
+--DELETE CASCADE 옵션일 때 부모 데이터 삭제 
+DELETE FROM DEPT_PK1;
+
+--2개가 물고 있어서 CASCADE안 된 거라 한 테이블은 밀어버림ㅎㅎㅎ
+ALTER TABLE EMP_PK_FK1 
+    DROP CONSTRAINT FK_EMP_DNO; 
+    
+--DELETE CASCADE 옵션일 때 부모 데이터 삭제 
+--오라클에서는 UPDATE CASCADE는 지원 안 됨 
+--DELETE CASCADE 옵션은 부모테이블 데이터를 삭제할 수 있게 해주는데 
+--자식테이블의 데이터도 같이 삭제된다. 
+--부모테이블에서 삭제되는 데이터를 참조하고 있는 자식테이블의 데이터도 같이 삭제된다. 
+--UPDATE CASCADE 옵션은 부모테이블의 데이터를 수정할 수 있다.
+--부모테이블에서 수정되는 데이터를 참조하고 있는 자식테이블의 데이터도 같이 수정된다. 
+DELETE FROM DEPT_PK1
+    WHERE DNO = 1;
+    
+--FK 관계의 종류 
+--1:1 부모테이블 데이터 1개당 자식테이블 데이터 1개가 생성되는 구조
+--부모테이블의 PK,UK 컬럼이 자식테이블의 FK면서 PK, UK로 잡혀야 된다. 
+CREATE TABLE T_USER (
+    USER_ID VARCHAR2(20) PRIMARY KEY,
+    PASSWORD VARCHAR2(50),
+    JOIN_DATE DATE
+);
+
+INSERT INTO T_USER
+VALUES('gogi', '1234', SYSDATE); --ID 하나만 존재 
+
+CREATE TABLE T_USER_DETAIL(
+    USER_ID VARCHAR2(20) PRIMARY KEY,
+    USER_NAME VARCHAR2(20),
+    USER_EMAIL VARCHAR2(100),
+    USER_TEL NUMBER(11),
+    CONSTRAINT FK_USER_ID FOREIGN KEY(USER_ID)
+        REFERENCES T_USER(USER_ID)
+);
+
+INSERT INTO T_USER_DETAIL
+VALUES('gogi', NULL, NULL, NULL); --ID 하나만 존재 
+
+--1 : N 관계 
+--부모테이블의 데이터 1개로 자식테이블 데이터 여러 개를 생성할 수 있는 관계
+--DEPT_PK1과 EMP_PK_FK2은 1 : N 관계 
+--DEPT_PK1의 PK인 DNO으로 EMP_PK_FK2에서는 여러 개의 데이터(중복)를 생성할 수 있기 때문에 1:N관계 
+--T_BOARD와 T_BOARD_FILE을 1:N관계로 만들어보기 
+DROP TABLE T_BOARD_FILE;
+
+CREATE TABLE T_BOARD_FILE (
+    BOARD_NO NUMBER, 
+    BOARD_FILE_NO NUMBER,
+    BOARD_FILE_NM VARCHAR2(200), 
+    BOARD_FILE_PATH VARCHAR2(2000),
+    ORIGIN_FILE_NM VARCHAR2(200),
+    
+    CONSTRAINT PK_BF_BOARD_FILE_NO PRIMARY KEY(BOARD_NO, BOARD_FILE_NO),
+    CONSTRAINT FK_BOARD_BOARD_NO FOREIGN KEY(BOARD_NO)
+        REFERENCES T_BOARD(BOARD_NO) 
+);
+
+INSERT INTO T_BOARD
+VALUES(1, NULL, NULL, NULL, NULL, NULL);
+
+INSERT INTO T_BOARD_FILE
+VALUES(1, 1, NULL, NULL, NULL);
+
+INSERT INTO T_BOARD_FILE
+VALUES(1, 2, NULL, NULL, NULL);
+
+--1-3. Unique Key
+--UK 생성
+CREATE TABLE EMP_UK(
+    ENO NUMBER CONSTRAINT UK_EMP_ENO UNIQUE,
+    ENAME VARCHAR2(20)
+);
+
+--데이터 저장 
+INSERT INTO EMP_UK
+VALUES(1, '홍길동');
+
+-- 이건 안 됨 
+INSERT INTO EMP_UK
+VALUES(1, '장길산');
+
+INSERT INTO EMP_UK
+VALUES(2, '장길산');
+
+--NULL값은 중복 저장 가능
+INSERT INTO EMP_UK
+VALUES(NULL, '홍길동2');
+
+INSERT INTO EMP_UK
+VALUES(NULL, '홍길동3');
+
+INSERT INTO EMP_UK
+VALUES(NULL, '홍길동4');
+
+INSERT INTO EMP_UK
+VALUES(NULL, '홍길동5');
+
+INSERT INTO EMP_UK
+VALUES(NULL, '홍길동6');
+
+SELECT *
+    FROM EMP_UK;
+    
+--1-4.CHECK
+--체크생성
+CREATE TABLE EMP_CHK(
+    ENO NUMBER PRIMARY KEY,
+    ENAME VARCHAR2(20),
+    JOB VARCHAR2(10),
+    MGR NUMBER,
+    SAL NUMBER(11, 3),
+    COMM NUMBER(5, 2),
+    CONSTRAINT CHK_EMP_SAL CHECK(SAL >= 3000),
+    CONSTRAINT CHK_EMP_COMM CHECK(COMM BETWEEN 100 AND 1000)
+);
+
+--CHECK 조건에 맞지 않는 데이터 저장 
+INSERT INTO EMP_CHK
+VALUES(1, NULL, NULL, 0, 3000, 50);
+
+--조건 맞게 
+INSERT INTO EMP_CHK
+VALUES(1, NULL, NULL, 0, 3000, 500);
+
+--1-5. NOT NULL 
+CREATE TABLE EMP_NOT_NULL(
+    ENO NUMBER PRIMARY KEY,
+    ENAME VARCHAR2(20) NOT NULL,
+    JOB VARCHAR2(10) NOT NULL,
+    MGR NUMBER, 
+    HDATE DATE NOT NULL,
+    DNO NUMBER NOT NULL
+);
+
+--NOT NULL로 지정된 컬럼에 NULL을 저장하면 에러가 발생. 
+INSERT INTO EMP_NOT_NULL
+VALUES(1, '홍길동', NULL, 0, SYSDATE, 0);
+
+--1-6. DEFAULT
+CREATE TABLE EMP_DEF(
+    ENO NUMBER PRIMARY KEY,
+    ENAME VARCHAR2(20) NOT NULL,
+    JOB VARCHAR2(10) DEFAULT '개발' NOT NULL,
+    MGR NUMBER, 
+    HDATE DATE DEFAULT SYSDATE NOT NULL,
+    DNO NUMBER NOT NULL
+);
+
+--DEFAULT로 지정된 컬럼 제외한 데이터 저장 
+INSERT INTO EMP_DEF(ENO, ENAME, MGR, DNO)
+VALUES(1, '홍길동', 0, 1);
+
+SELECT *
+    FROM EMP_DEF;
+    
+--테이블 생성 연습
+CREATE TABLE FACTORY (
+    FNO NUMBER,
+    FNAME VARCHAR2(50) NOT NULL,
+    LOC VARCHAR2(10) DEFAULT '서울',
+    CONSTRAINT PK_FAC_FNO PRIMARY KEY(FNO)
+);
+
+CREATE TABLE GOODS (
+    GNO NUMBER,
+    GNAME VARCHAR2(50),
+    PRI NUMBER DEFAULT 10000,
+    FNO NUMBER NOT NULL,
+    CONSTRAINT PK_GOODS_GNO PRIMARY KEY(GNO),
+    CONSTRAINT FK_GOODS_FNO FOREIGN KEY(FNO)
+                    REFERENCES FACTORY(FNO) 
+);
+
+CREATE TABLE PROD (
+    PNO NUMBER,
+    GNO NUMBER NOT NULL,
+    PRICE NUMBER DEFAULT 7000,
+    PDATE DATE,
+    CONSTRAINT PK_PROD_PNO PRIMARY KEY(PNO),
+    CONSTRAINT FK_PROD_GNO FOREIGN KEY(GNO)
+                    REFERENCES GOODS(GNO)
+);

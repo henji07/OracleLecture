@@ -120,13 +120,13 @@ SELECT ROWNUM
     FROM (
             SELECT CNO
              , CR.CNAME
-             , ROUND(AVG(SC.RESULT),2)AVR
+             , ROUND(AVG(SC.RESULT),2) AVR
             FROM SCORE SC
             NATURAL JOIN COURSE CR
             GROUP BY CNO, CR.CNAME
             ORDER BY AVG(SC.RESULT) DESC
           )A
-WHERE ROWNUM <= 3;
+    WHERE ROWNUM <= 3;
 
 --3) 학과별, 학년별, 기말고사 평균이 순위 3까지를 검색하세요.(학과, 학년, 평균점수 검색)
 SELECT ROWNUM
